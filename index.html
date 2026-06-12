@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Procémon — créatures procédurales</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='7' fill='%23d84a4a'/><rect y='7' width='16' height='2' fill='%23222'/><circle cx='8' cy='8' r='2.5' fill='%23fff'/></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <div id="gameWrap">
+    <div id="hud">
+      <span class="brand">PROCÉMON</span>
+      <span>Monde <b id="hudSeed">—</b></span>
+      <span>Capsules <b id="hudBalls">0</b></span>
+      <span>Potions <b id="hudPotions">0</b></span>
+      <span id="hudTime">☀️ Jour</span>
+      <button id="btnTeam">Équipe (E)</button>
+      <button id="btnDex">Procédex (P)</button>
+    </div>
+    <canvas id="map" width="480" height="416"></canvas>
+
+    <div id="toast"></div>
+
+    <div id="start" class="overlay">
+      <h1>PROCÉMON</h1>
+      <p class="tagline">Un monde de créatures entièrement généré procéduralement</p>
+      <label for="seedInput">Graine du monde (pour une nouvelle partie)</label>
+      <input id="seedInput" maxlength="24" spellcheck="false" autocomplete="off">
+      <div id="slots"></div>
+      <p class="help">ZQSD / WASD / Flèches : se déplacer · E : équipe · P : Procédex · M : son<br>
+      Hautes herbes : rencontres (la faune dépend du biome et de l'heure — gare à la nuit !)<br>
+      Dresseurs (!), objets au sol, tuile ✚ pour se soigner…<br>
+      Suivez la route jusqu'à l'Arène au sommet : un champion et un sanctuaire vous attendent.</p>
+    </div>
+
+    <div id="starter" class="overlay hidden">
+      <h2>Choisissez votre première créature !</h2>
+      <div id="starterCards"></div>
+    </div>
+
+    <div id="team" class="overlay menu hidden">
+      <h2 id="teamTitle">Équipe</h2>
+      <div id="teamList"></div>
+      <h3>Boîte (<span id="boxCount">0</span>)</h3>
+      <div id="boxList"></div>
+      <button id="teamClose" class="closebtn">Fermer (Échap)</button>
+    </div>
+
+    <div id="dex" class="overlay menu hidden">
+      <h2>Procédex</h2>
+      <p id="dexCount"></p>
+      <div id="dexGrid"></div>
+      <button id="dexClose" class="closebtn">Fermer (Échap)</button>
+    </div>
+
+    <div id="battle" class="overlay hidden">
+      <div id="arena">
+        <div id="enemyPlate" class="plate">
+          <div class="prow"><span id="eName"></span><span id="eLvl"></span></div>
+          <div class="hpbar"><div id="eHp" class="hpfill hp-g"></div></div>
+          <div id="eTypes" class="typesrow"></div>
+        </div>
+        <div id="enemySpot" class="spot enemy"></div>
+        <div id="allySpot" class="spot ally"></div>
+        <div id="allyPlate" class="plate">
+          <div class="prow"><span id="aName"></span><span id="aLvl"></span></div>
+          <div class="hpbar"><div id="aHp" class="hpfill hp-g"></div></div>
+          <div class="prow small"><span id="aHpText"></span></div>
+          <div class="xpbar"><div id="aXp"></div></div>
+        </div>
+      </div>
+      <div id="bmsgbox"><p id="bmsg"></p></div>
+      <div id="bmenu">
+        <div id="bactions">
+          <button data-act="fight">⚔ Attaque</button>
+          <button data-act="bag">◎ Sac</button>
+          <button data-act="team">⇄ Équipe</button>
+          <button data-act="run">➤ Fuite</button>
+        </div>
+        <div id="bmoves" class="hidden"></div>
+        <div id="bbag" class="hidden"></div>
+      </div>
+    </div>
+  </div>
+  <p id="controls">ZQSD / Flèches : déplacement · E : Équipe · P : Procédex · M : son · Échap : fermer</p>
+</div>
+<script src="js/rng.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/data.js"></script>
+<script src="js/names.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/species.js"></script>
+<script src="js/world.js"></script>
+<script src="js/battle.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
