@@ -14,7 +14,7 @@ body {
 
 #gameWrap {
   position: relative;
-  width: 480px;
+  width: min(480px, 100vw);
   border: 4px solid #3a4170;
   border-radius: 10px;
   overflow: hidden;
@@ -23,6 +23,8 @@ body {
 }
 
 canvas { display: block; image-rendering: pixelated; }
+/* La carte remplit le cadre et garde son ratio en se réduisant sur petits écrans. */
+#map { width: 100%; height: auto; touch-action: none; }
 
 #controls {
   text-align: center;
@@ -350,3 +352,41 @@ button.big { font-size: 15px; padding: 10px 22px; font-weight: 600; }
   z-index: 30;
 }
 #toast.show { opacity: 1; }
+
+/* ====================================================================
+   Adaptatif mobile — placé en fin de feuille pour l'emporter sur les
+   règles de base de même spécificité (#hud { height: 36px }, etc.).
+   ==================================================================== */
+
+/* Portrait / écrans étroits : le HUD passe à la ligne et grandit (sinon les
+   boutons Équipe/Procédex débordent sous la barre, derrière le canvas, et
+   deviennent inaccessibles au tap) ; les cartes de starter s'empilent. */
+@media (max-width: 520px) {
+  #hud {
+    height: auto;
+    min-height: 36px;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+  #hud button { padding: 3px 8px; }
+  #starterCards { flex-wrap: wrap; justify-content: center; }
+}
+
+/* Paysage / écrans bas (smartphone tenu horizontalement). La taille exacte du
+   cadre et de la carte est calculée en JS (fitViewport) pour coller à la carte
+   mise à l'échelle sans bande vide ; ici on ne fait que l'habillage du HUD. */
+@media (max-height: 540px) {
+  #app { padding: 4px 0; }
+  #controls { display: none; }
+  #hud {
+    height: auto;
+    min-height: 32px;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  #hud button { padding: 3px 8px; }
+}

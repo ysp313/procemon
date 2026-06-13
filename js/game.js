@@ -22,6 +22,7 @@ class Game {
     this.ctx = document.getElementById('map').getContext('2d');
     this.spriteCache = new Map();
     this.keysDown = [];
+    this.touchDir = null;
     this.state = 'start'; // start | world | menu | battle | battle-team
     this.teamMode = 'view';
     this.slot = 1;
@@ -35,6 +36,10 @@ class Game {
     }
     this.bindUI();
     this.bindKeys();
+    this.bindTouch();
+    this.fitViewport();
+    window.addEventListener('resize', () => this.fitViewport());
+    window.addEventListener('orientationchange', () => this.fitViewport());
     requestAnimationFrame(t => this.loop(t));
   }
 
@@ -173,7 +178,69 @@ class Game {
       const dir = DIRKEYS[e.key] || DIRKEYS[e.key.toLowerCase()];
       if (dir) this.keysDown = this.keysDown.filter(d => d !== dir);
     });
-    window.addEventListener('blur', () => { this.keysDown = []; });
+    window.addEventListener('blur', () => { this.keysDown = []; this.touchDir = null; });
+  }
+
+  // Joystick tactile : un glissement maintenu sur la carte pousse une
+  // direction (axe dominant) dans keysDown, exactement comme une touche tenue.
+  setTouchDir(dir) {
+    if (dir === this.touchDir) return;
+    if (this.touchDir) this.keysDown = this.keysDown.filter(d => d !== this.touchDir);
+    this.touchDir = dir;
+    if (dir && !this.keysDown.includes(dir)) this.keysDown.push(dir);
+  }
+
+  bindTouch() {
+    const TH = 16; // seuil en px CSS avant de déclencher une direction
+    let ox = 0, oy = 0, active = false;
+    const release = () => { active = false; this.setTouchDir(null); };
+    this.canvas.addEventListener('touchstart', e => {
+      Sfx.ensure();
+      if (this.state !== 'world') return;
+      const t = e.changedTouches[0];
+      ox = t.clientX; oy = t.clientY; active = true;
+      e.preventDefault();
+    }, { passive: false });
+    this.canvas.addEventListener('touchmove', e => {
+      if (!active || this.state !== 'world') return;
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      const dx = t.clientX - ox, dy = t.clientY - oy;
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < TH) { this.setTouchDir(null); return; }
+      this.setTouchDir(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left')
+                                                    : (dy > 0 ? 'down' : 'up'));
+    }, { passive: false });
+    this.canvas.addEventListener('touchend', release);
+    this.canvas.addEventListener('touchcancel', release);
+  }
+
+  // Sur petits écrans (smartphone), on dimensionne le cadre et la carte pour
+  // qu'ils tiennent dans la fenêtre en gardant le ratio, sans bande vide : la
+  // largeur du cadre suit la carte mise à l'échelle (et non l'inverse, sinon le
+  // HUD sur une longue ligne élargirait le cadre au-delà de la carte).
+  fitViewport() {
+    const wrap = document.getElementById('gameWrap');
+    const hud = document.getElementById('hud');
+    const small = window.matchMedia('(max-width: 520px), (max-height: 540px)').matches;
+    if (!small) {
+      wrap.style.width = '';
+      this.canvas.style.width = '';
+      this.canvas.style.height = '';
+      return;
+    }
+    const aspect = this.canvas.width / this.canvas.height; // 480 / 416
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let cw = Math.min(vw - 8, this.canvas.width); // -8 : bordures du cadre
+    // 2 passes : la hauteur du HUD dépend de la largeur (retour à la ligne).
+    for (let i = 0; i < 2; i++) {
+      wrap.style.width = (cw + 8) + 'px';
+      const reserve = hud.offsetHeight + 8 /*bordures*/ + 12 /*marge app + sécurité*/;
+      const maxByH = (vh - reserve) * aspect;
+      cw = Math.max(140, Math.min(vw - 8, this.canvas.width, maxByH));
+    }
+    this.canvas.style.width = cw + 'px';
+    this.canvas.style.height = (cw / aspect) + 'px';
+    wrap.style.width = (cw + 8) + 'px';
   }
 
   // ---------- Nouvelle partie / chargement ----------
@@ -432,6 +499,7 @@ class Game {
 
   _beginBattle(opponents, trainer) {
     this.keysDown = [];
+    this.touchDir = null;
     this.state = 'battle';
     document.getElementById('arena').classList.toggle('night', this.isNight());
     this.battle = new Battle(this, opponents, trainer);
@@ -484,6 +552,7 @@ class Game {
     this.teamMode = mode; // view | switch | force
     this.state = mode === 'view' ? 'menu' : 'battle-team';
     this.keysDown = [];
+    this.touchDir = null;
     document.getElementById('teamTitle').textContent =
       mode === 'view' ? 'Équipe' : 'Choisissez une créature';
     document.getElementById('teamClose').style.display = mode === 'view' ? '' : 'none';
@@ -601,6 +670,7 @@ class Game {
   openDex() {
     this.state = 'menu';
     this.keysDown = [];
+    this.touchDir = null;
     document.getElementById('dexCount').textContent =
       `${this.caught.size} capturés · ${this.seen.size} vus · ${this.dex.length} espèces dans ce monde`;
     const grid = document.getElementById('dexGrid');
