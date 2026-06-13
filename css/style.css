@@ -81,6 +81,9 @@ button.big { font-size: 15px; padding: 10px 22px; font-weight: 600; }
   overflow-y: auto;
   align-items: stretch;
   text-align: left;
+  /* Au-dessus du combat (#battle, z-index 10) : l'écran d'équipe s'ouvre
+     par-dessus le combat (changement volontaire ou forcé après un K.O.). */
+  z-index: 20;
 }
 .overlay h2 { margin-bottom: 8px; color: #ffd75e; }
 .overlay h3 { margin: 14px 0 6px; color: #9fc4ff; font-size: 14px; }
